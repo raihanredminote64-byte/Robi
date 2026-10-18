@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Robi's Lab</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-white p-4 md:p-6 font-sans">
+    <div class="flex flex-wrap justify-between items-center border-b border-slate-800 pb-4 mb-6 gap-4">
+        <div>
+            <h1 class="text-xl md:text-2xl font-bold text-orange-400">🤖 Robi's Lab — Pusat Kendali Penuh Admin</h1>
+            <p class="text-xs text-slate-400">Pure Auto-Fit Supply | Kontrol Wallet TON, Varian VIP, Upgrade Lab & Misi Harian</p>
+        </div>
+        <div class="flex flex-wrap gap-2 items-center">
+            <input type="password" id="secret" value="Raihan3110" placeholder="Admin Secret" class="bg-slate-900 border border-slate-700 px-3 py-2 rounded-lg text-sm">
+            <button onclick="loadDashboard()" class="bg-slate-800 hover:bg-slate-700 border border-slate-600 px-4 py-2 rounded-lg text-xs font-bold cursor-pointer">🔄 Muat Data</button>
+            <button onclick="saveEverythingMaster()" class="bg-emerald-600 hover:bg-emerald-500 px-5 py-2 rounded-lg text-xs font-extrabold text-white shadow-lg cursor-pointer">💾 SIMPAN SEMUA PERUBAHAN</button>
+        </div>
+    </div>
+
+    <div id="status-toast" class="hidden mb-4 p-3 rounded-xl border text-xs font-bold"></div>
+
+    <div class="bg-slate-900 border-2 border-orange-500/70 rounded-2xl p-5 mb-6">
+        <div class="flex flex-wrap justify-between items-center gap-2 mb-3">
+            <div>
+                <h2 class="text-base font-bold text-orange-400">💼 Pengaturan Master Wallet TON Admin</h2>
+                <p class="text-xs text-slate-400">Seluruh pembayaran Varian VIP & Upgrade TON pemain langsung masuk ke dompet ini.</p>
+            </div>
+            <span class="px-3 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 rounded-full text-xs font-bold">● Auto-Save Database Aktif</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+            <div class="md:col-span-6">
+                <label class="text-xs text-slate-300 font-semibold block mb-1">Alamat Master Wallet TON Aktif (UQ... / EQ...)</label>
+                <input type="text" id="cfg-wallet" value="UQCul5GCA1kYB8Mvp-dLtLTp8tnxgNzuYYwhS-jFY5PNfQQE" class="w-full bg-slate-950 border border-orange-500/60 p-2.5 rounded-lg text-xs font-mono text-amber-300 font-bold">
+            </div>
+            <div class="md:col-span-4">
+                <label class="text-xs text-slate-300 font-semibold block mb-1">Toncenter API Key</label>
+                <input type="password" id="cfg-apikey" value="c25daab1896cfdef11073094a586f7c2cafd83caf21f505e203ad6ec0e726210" class="w-full bg-slate-950 border border-slate-700 p-2.5 rounded-lg text-xs font-mono text-slate-300">
+            </div>
+            <div class="md:col-span-2">
+                <button onclick="updateWalletOnly()" class="w-full bg-orange-600 hover:bg-orange-500 py-2.5 px-3 rounded-lg font-bold text-xs text-white transition cursor-pointer">💾 Simpan Wallet</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-slate-900 border border-indigo-500/50 rounded-2xl p-5 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 items-center">
+            <div>
+                <span class="px-2.5 py-1 bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 rounded-full text-[11px] font-bold">🎯 AUTO-FIT RATIO AKTIF</span>
+                <div class="mt-2 text-xs text-slate-400">Rasio Pembagi Otomatis Saat Ini:</div>
+                <div class="text-2xl font-extrabold text-amber-400 mt-0.5"><span id="ui-autofit-ratio">1</span> <span class="text-xs font-normal text-slate-300">Skor = 1 $ROBI</span></div>
+            </div>
+            <div>
+                <span class="text-xs text-slate-400 block">Total Token Terbagi / Target Supply</span>
+                <div class="text-xl font-extrabold text-emerald-400 mt-1"><span id="ui-total-allocated">0</span> / <span id="ui-target-pool" class="text-white">10,000,000</span> $ROBI</div>
+                <span class="text-[11px] text-slate-400">Distribusi Proporsional Tanpa Batas</span>
+            </div>
+            <div>
+                <span class="text-xs text-slate-400 block">Porsi Pemain VIP vs Gratis</span>
+                <div class="text-sm font-bold text-orange-400 mt-1">VIP: <span id="ui-vip-share">0</span> $ROBI</div>
+                <div class="text-sm font-bold text-sky-400">Gratis: <span id="ui-free-share">0</span> $ROBI</div>
+            </div>
+            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-right">
+                <span class="text-xs text-slate-400 block">Total Deposit TON Masuk</span>
+                <strong id="ui-ton-in" class="text-2xl font-extrabold text-amber-400">0 TON</strong>
+                <span id="ui-total-weight" class="block text-[10px] text-slate-500 mt-1">Total Bobot Global: 0</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="space-y-6">
+            <div class="bg-slate-900 p-5 rounded-xl border-2 border-amber-500/60 space-y-3">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                    <h3 class="font-bold text-amber-400">👑 Manajemen Varian / Paket VIP</h3>
+                    <button onclick="resetVipVariantForm()" class="text-[10px] text-slate-400 hover:text-white underline">Reset Form</button>
+                </div>
+                <input type="hidden" id="vip-var-id">
+                <div class="grid grid-cols-3 gap-2">
+                    <div class="col-span-2">
+                        <label class="text-xs text-slate-300 font-semibold">Nama Varian VIP</label>
+                        <input type="text" id="vip-var-name" placeholder="Contoh: VIP Sultan" class="w-full bg-slate-950 border border-slate-700 p-2 rounded text-xs mt-1 font-bold text-white">
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-300 font-semibold">Ikon Emoji</label>
+                        <input type="text" id="vip-var-icon" value="👑" class="w-full bg-slate-950 border border-slate-700 p-2 rounded text-xs mt-1 text-center">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-xs text-slate-300 font-semibold">💎 Harga Paket (TON)</label>
+                        <input type="number" step="0.1" id="vip-var-cost" placeholder="2.5" class="w-full bg-slate-950 border border-amber-500/50 p-2 rounded text-xs font-bold text-amber-400 mt-1">
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-300 font-semibold">🚀 Multiplier $ROBI (x)</label>
+                        <input type="number" step="0.5" id="vip-var-multi" placeholder="5.0" class="w-full bg-slate-950 border border-orange-500/50 p-2 rounded text-xs font-bold text-orange-400 mt-1">
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                    <div>
+                        <label class="text-[11px] text-slate-300 font-semibold">⚡ Bonus Tap (+)</label>
+                        <input type="number" id="vip-var-tap" placeholder="25" class="w-full bg-slate-950 border border-slate-700 p-2 rounded text-xs text-emerald-400 font-bold mt-1">
+                    </div>
+                    <div>
+                        <label class="text-[11px] text-slate-300 font-semibold">🧪 Bonus PPH</label>
+                        <input type="number" id="vip-var-pph" placeholder="15000" class="w-full bg-slate-950 border border-slate-700 p-2 rounded text-xs text-sky-400 font-bold mt-1">
+                    </div>
+                    <div>
+                        <label class="text-[11px] text-slate-300 font-semibold">⏳ Max PPH (Jam)</label>
+                        <input type="number" id="vip-var-hours" value="24" class="w-full bg-slate-950 border border-slate-700 p-2 rounded text-xs text-indigo-300 font-bold mt-1">
+                    </div>
+                </div>
+                <button onclick="addOrSaveVipVariant()" id="btn-save-vip-var" class="w-full bg-amber-600 hover:bg-amber-500 py-2.5 rounded-lg font-bold text-xs text-white transition cursor-pointer">➕ Tambah & Simpan Varian VIP</button>
+                <div class="mt-3">
+                    <span class="text-xs font-bold text-slate-400 block mb-1">Daftar Varian VIP Aktif:</span>
+                    <div id="admin-vip-variants-list" class="space-y-1.5 max-h-52 overflow-y-auto pr-1"></div>
+                </div>
+            </div>
+
+            <div class="bg-slate-900 p-5 rounded-xl border border-slate-800 space-y-3">
+                <h3 class="font-bold text-sky-400 border-b border-slate-800 pb-2">⚙️ Pengaturan Supply & Klaim PPH</h3>
+                <div>
+                    <label class="text-xs text-slate-300 font-semibold">🎯 Target Total Supply Token ($ROBI)</label>
+                    <input type="number" id="cfg-pool" value="10000000" oninput="recalcAutoFitLive()" class="w-full bg-slate-950 border border-indigo-500/60 p-2 rounded text-sm font-bold text-white mt-1">
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                    <div>
+                        <label class="text-[11px] text-slate-300 font-semibold">💎 Default VIP (x)</label>
+                        <input type="number" step="0.5" id="cfg-vip" value="3.0" oninput="recalcAutoFitLive()" class="w-full bg-slate-950 border border-orange-500/60 p-2 rounded text-xs font-bold text-orange-400 mt-1">
+                    </div>
+                    <div>
+                        <label class="text-[11px] text-slate-300 font-semibold">🧪 1 PPH = X Poin</label>
+                        <input type="number" id="cfg-pph" value="50" oninput="recalcAutoFitLive()" class="w-full bg-slate-950 border border-slate-700 p-2 rounded text-xs text-sky-400 font-bold mt-1">
+                    </div>
+                    <div>
+                        <label class="text-[11px] text-slate-300 font-semibold">⏳ Klaim PPH (Jam)</label>
+                        <input type="number" step="0.5" id="cfg-pph-hours" value="3" class="w-full bg-slate-950 border border-slate-700 p-2 rounded text-xs text-emerald-400 font-bold mt-1">
+                    </div>
+                </div>
+                <div class="pt-3 border-t border-slate-800 space-y-2">
+                    <div class="flex justify-between items-center bg-slate-950 p-2.5 rounded border border-slate-800">
+                        <span class="text-xs font-bold">1. Kunci Konversi</span>
+                        <select id="cfg-lock-conv" class="bg-slate-900 border border-slate-700 text-xs p-1.5 rounded font-bold text-amber-400">
+                            <option value="true">🔒 TERKUNCI</option>
+                            <option value="false">🔓 DIBUKA</option>
+                        </select>
+                    </div>
+                    <div class="flex justify-between items-center bg-slate-950 p-2.5 rounded border border-slate-800">
+                        <span class="text-xs font-bold">2. Kunci Withdraw</span>
+                        <select id="cfg-lock-wd" class="bg-slate-900 border border-slate-700 text-xs p-1.5 rounded font-bold text-rose-400">
+                            <option value="true">🔒 TERKUNCI</option>
+                            <option value="false">🔓 DIBUKA</option>
+                        </select>
+                    </div>
+                </div>
+                <button onclick="saveEverythingMaster()" class="w-full bg-sky-600 hover:bg-sky-500 py-2.5 rounded-lg font-bold text-xs transition cursor-pointer">💾 Simpan Pengaturan Sistem</button>
+            </div>
+
+            <div class="bg-slate-900 p-5 rounded-xl border border-slate-800 space-y-3">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                    <h3 class="font-bold text-orange-400">🔬 Tambah / Edit Upgrade Plan Lab</h3>
+                    <button onclick="resetCardForm()" class="text-[10px] text-slate-400 hover:text-white underline">Reset Form</button>
+                </div>
+                <input type="hidden" id="card-id">
+                <input type="text" id="card-name" placeholder="Nama Item / Upgrade Plan" class="w-full bg-slate-950 border border-slate-700 p-2 rounded text-xs">
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="text" id="card-icon" value="🧪" class="w-full bg-slate-950 border border-slate-700 p-2 rounded text-xs text-center">
+                    <select id="card-currency" class="w-full bg-slate-950 border border-slate-700 p-2 rounded text-xs font-bold text-amber-300">
+                        <option value="POINTS">🧪 Poin Riset</option>
+                        <option value="TON">💎 TON (VIP)</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="number" step="any" id="card-cost" placeholder="Harga Dasar" class="w-full bg-slate-950 border border-slate-700 p-2 rounded text-xs">
+                    <input type="number" id="card-pph" placeholder="Profit PPH (/Jam)" class="w-full bg-slate-950 border border-slate-700 p-2 rounded text-xs">
+                </div>
+                <button onclick="addOrSaveLabCard()" id="btn-save-card" class="w-full bg-orange-600 hover:bg-orange-500 py-2.5 rounded-lg font-bold text-xs transition cursor-pointer">➕ Tambah & Simpan Item Lab</button>
+                <div id="admin-cards-list" class="space-y-1.5 max-h-48 overflow-y-auto pr-1 mt-2"></div>
+            </div>
+
+            <div class="bg-slate-900 p-5 rounded-xl border border-slate-800 space-y-3">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                    <h3 class="font-bold text-emerald-400">📋 Tambah / Edit Misi Harian</h3>
+                    <button onclick="resetMissionForm()" class="text-[10px] text-slate-400 hover:text-white underline">Reset Form</button>
+                </div>
+                <input type="hidden" id="mission-id">
+                <input type="text" id="mission-title" placeholder="Judul Misi" class="w-full bg-slate-950 border border-slate-700 p-2 rounded text-xs">
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="number" id="mission-reward" placeholder="Hadiah Poin" class="w-full bg-slate-950 border border-slate-700 p-2 rounded text-xs">
+                    <input type="text" id="mission-link" placeholder="https://t.me/..." class="w-full bg-slate-950 border border-slate-700 p-2 rounded text-xs">
+                </div>
+                <button onclick="addOrSaveMission()" id="btn-save-mission" class="w-full bg-emerald-600 hover:bg-emerald-500 py-2.5 rounded-lg font-bold text-xs transition cursor-pointer">➕ Tambah & Simpan Misi</button>
+                <div id="admin-missions-list" class="space-y-1.5 max-h-44 overflow-y-auto pr-1 mt-2"></div>
+            </div>
+        </div>
+
+        <div class="lg:col-span-2 space-y-6">
+            <div class="bg-slate-900 p-5 rounded-xl border border-slate-800">
+                <h3 class="font-bold text-white border-b border-slate-800 pb-2 mb-3">👥 Daftar Pemain & Pengaturan Varian VIP / Poin / PPH</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="text-slate-400 border-b border-slate-800">
+                            <tr>
+                                <th class="py-2 pr-2">Pemain</th>
+                                <th class="py-2 pr-2">Edit Poin</th>
+                                <th class="py-2 pr-2">Edit PPH</th>
+                                <th class="py-2 pr-2">Varian VIP Pemain</th>
+                                <th class="py-2 pr-2 text-amber-400">Estimasi ($ROBI)</th>
+                                <th class="py-2">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table" class="divide-y divide-slate-800"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="bg-slate-900 p-5 rounded-xl border border-slate-800">
+                <h3 class="font-bold text-amber-400 border-b border-slate-800 pb-2 mb-3">🪙 Antrean Klaim Withdraw Token $ROBI</h3>
+                <div id="claims-list" class="text-xs text-slate-400 space-y-2">Belum ada antrean klaim token.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const ADMIN_STORAGE_KEY = 'robi_admin_backup_v3';
+        let cachedUsers = [], cachedVipVariants = [], cachedMissions = [], cachedCatalog = [];
+        const getHeaders = () => ({ 'Content-Type': 'application/json', 'x-admin-secret': (document.getElementById('secret').value || 'Raihan3110').trim() });
+
+        function showToast(msg, isError = false) {
+            const el = document.getElementById('status-toast');
+            el.className = `mb-4 p-3 rounded-xl border text-xs font-bold ${isError ? 'bg-rose-950 border-rose-500 text-rose-300' : 'bg-emerald-950 border-emerald-500 text-emerald-300'}`;
+            el.innerText = msg;
+            el.classList.remove('hidden');
+            setTimeout(() => el.classList.add('hidden'), 4500);
+        }
+
+        function applyDashboardData(data) {
+            cachedUsers = data.users || [];
+            cachedVipVariants = data.vipVariants || [];
+            cachedMissions = data.missions || [];
+            cachedCatalog = data.catalog || [];
+            const cfg = data.systemConfig || {};
+
+            document.getElementById('cfg-wallet').value = cfg.adminMasterWallet || "UQCul5GCA1kYB8Mvp-dLtLTp8tnxgNzuYYwhS-jFY5PNfQQE";
+            document.getElementById('cfg-apikey').value = cfg.toncenterApiKey || "";
+            document.getElementById('cfg-pool').value = cfg.targetSupplyPool ?? 10000000;
+            document.getElementById('cfg-vip').value = cfg.vipMultiplier ?? 3.0;
+            document.getElementById('cfg-pph').value = cfg.pphPointEquivalent ?? 50;
+            document.getElementById('cfg-pph-hours').value = cfg.pphClaimIntervalHours ?? 3;
+            document.getElementById('cfg-lock-conv').value = String(cfg.conversionLocked ?? true);
+            document.getElementById('cfg-lock-wd').value = String(cfg.withdrawLocked ?? true);
+            if (data.autoFitStats) document.getElementById('ui-ton-in').innerText = `${data.autoFitStats.totalTonCollected || 0} TON`;
+
+            try { localStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify({ systemConfig: data.systemConfig, vipVariants: data.vipVariants, catalog: data.catalog, missions: data.missions, savedAt: Date.now() })); } catch (e) {}
+            renderAdminVipVariants();
+            renderAdminMissions();
+            renderAdminCards();
+            renderClaims(data.claimRequests || []);
+            recalcAutoFitLive();
+        }
+
+        async function loadDashboard() {
+            try {
+                const res = await fetch('/api/admin/dashboard', { headers: getHeaders() });
+                if (res.status === 403) return showToast("❌ Sandi Admin salah! Gunakan: Raihan3110", true);
+                const data = await res.json();
+                if (data.error) return showToast(data.error, true);
+                applyDashboardData(data);
+            } catch (err) {
+                showToast("Gagal terhubung ke server.", true);
+            }
+        }
+
+        function renderAdminVipVariants() {
+            const listEl = document.getElementById('admin-vip-variants-list');
+            listEl.innerHTML = '';
+            cachedVipVariants.forEach(v => {
+                const div = document.createElement('div');
+                div.className = "flex justify-between items-center bg-slate-950 p-2.5 rounded-lg text-xs border border-amber-500/30";
+                div.innerHTML = `
+                    <div class="pr-2">
+                        <strong class="text-amber-300 text-sm">${v.icon} ${v.name}</strong>
+                        <span class="block text-[10px] text-white font-bold">💎 ${v.costTon} TON | 🚀 Multiplier ${v.multiplier}x $ROBI</span>
+                        <span class="block text-[10px] text-slate-400">⚡ Tap +${v.tapGain || 0} | 🧪 PPH +${Number(v.pphBonus || 0).toLocaleString('id-ID')} | ⏳ Max ${v.maxOfflineHours || 24}j</span>
+                    </div>
+                    <div class="flex gap-1 shrink-0">
+                        <button onclick="editVipVariantForm('${v.id}')" class="bg-sky-700 px-2 py-1 rounded text-[10px] font-bold">Edit</button>
+                        <button onclick="deleteVipVariant('${v.id}')" class="bg-rose-600 px-2 py-1 rounded text-[10px] font-bold">Hapus</button>
+                    </div>
+                `;
+                listEl.appendChild(div);
+            });
+        }
+
+        function editVipVariantForm(id) {
+            const v = cachedVipVariants.find(x => x.id === id);
+            if (!v) return;
+            document.getElementById('vip-var-id').value = v.id;
+            document.getElementById('vip-var-name').value = v.name;
+            document.getElementById('vip-var-icon').value = v.icon || '👑';
+            document.getElementById('vip-var-cost').value = v.costTon;
+            document.getElementById('vip-var-multi').value = v.multiplier;
+            document.getElementById('vip-var-tap').value = v.tapGain || 0;
+            document.getElementById('vip-var-pph').value = v.pphBonus || 0;
+            document.getElementById('vip-var-hours').value = v.maxOfflineHours || 24;
+            document.getElementById('btn-save-vip-var').innerText = "💾 Simpan Perubahan Varian VIP";
+        }
+
+        function resetVipVariantForm() {
+            document.getElementById('vip-var-id').value = '';
+            document.getElementById('vip-var-name').value = '';
+            document.getElementById('vip-var-icon').value = '👑';
+            document.getElementById('vip-var-cost').value = '';
+            document.getElementById('vip-var-multi').value = '';
+            document.getElementById('vip-var-tap').value = '';
+            document.getElementById('vip-var-pph').value = '';
+            document.getElementById('vip-var-hours').value = '24';
+            document.getElementById('btn-save-vip-var').innerText = "➕ Tambah & Simpan Varian VIP";
+        }
+
+        async function addOrSaveVipVariant() {
+            const id = document.getElementById('vip-var-id').value;
+            const name = document.getElementById('vip-var-name').value;
+            const icon = document.getElementById('vip-var-icon').value || '👑';
+            const costTon = document.getElementById('vip-var-cost').value;
+            const multiplier = document.getElementById('vip-var-multi').value;
+            const tapGain = document.getElementById('vip-var-tap').value || 0;
+            const pphBonus = document.getElementById('vip-var-pph').value || 0;
+            const maxOfflineHours = document.getElementById('vip-var-hours').value || 24;
+            if (!name || costTon === "" || multiplier === "") return showToast("⚠️ Isi Nama Varian, Harga TON, dan Multiplier!", true);
+
+            const res = await fetch('/api/admin/add-vip-variant', {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ id, name, icon, costTon: Number(costTon), multiplier: Number(multiplier), tapGain: Number(tapGain), pphBonus: Number(pphBonus), maxOfflineHours: Number(maxOfflineHours) })
+            });
+            const data = await res.json();
+            if (data.error) return showToast(data.error, true);
+            resetVipVariantForm();
+            applyDashboardData(data);
+            showToast(data.message);
+        }
+
+        async function deleteVipVariant(variantId) {
+            const res = await fetch('/api/admin/delete-vip-variant', { method: 'POST', headers: getHeaders(), body: JSON.stringify({ variantId }) });
+            const data = await res.json();
+            if (!data.error) { applyDashboardData(data); showToast(data.message); }
+        }
+
+        function renderAdminMissions() {
+            const listEl = document.getElementById('admin-missions-list');
+            listEl.innerHTML = '';
+            cachedMissions.forEach(m => {
+                const div = document.createElement('div');
+                div.className = "flex justify-between items-center bg-slate-950 p-2 rounded text-xs border border-slate-800";
+                div.innerHTML = `
+                    <div><strong>${m.title}</strong><span class="block text-[10px] text-emerald-400">+${Number(m.reward).toLocaleString('id-ID')} Poin</span></div>
+                    <div class="flex gap-1"><button onclick="editMissionForm('${m.id}')" class="bg-sky-700 px-2 py-1 rounded text-[10px] font-bold">Edit</button><button onclick="deleteMission('${m.id}')" class="bg-rose-600 px-2 py-1 rounded text-[10px] font-bold">Hapus</button></div>
+                `;
+                listEl.appendChild(div);
+            });
+        }
+
+        function editMissionForm(id) {
+            const m = cachedMissions.find(x => x.id === id);
+            if (!m) return;
+            document.getElementById('mission-id').value = m.id;
+            document.getElementById('mission-title').value = m.title;
+            document.getElementById('mission-reward').value = m.reward;
+            document.getElementById('mission-link').value = m.link;
+        }
+
+        function resetMissionForm() {
+            document.getElementById('mission-id').value = '';
+            document.getElementById('mission-title').value = '';
+            document.getElementById('mission-reward').value = '';
+            document.getElementById('mission-link').value = '';
+        }
+
+        function renderAdminCards() {
+            const listEl = document.getElementById('admin-cards-list');
+            listEl.innerHTML = '';
+            cachedCatalog.forEach(c => {
+                const div = document.createElement('div');
+                div.className = "flex justify-between items-center bg-slate-950 p-2 rounded text-xs border border-slate-800";
+                div.innerHTML = `
+                    <div><strong>${c.icon} ${c.name}</strong><span class="block text-[10px] text-sky-400">${c.baseCost} ${c.currency} | PPH +${c.basePph}</span></div>
+                    <div class="flex gap-1"><button onclick="editCardForm('${c.id}')" class="bg-sky-700 px-2 py-1 rounded text-[10px] font-bold">Edit</button><button onclick="deleteLabCard('${c.id}')" class="bg-rose-600 px-2 py-1 rounded text-[10px] font-bold">Hapus</button></div>
+                `;
+                listEl.appendChild(div);
+            });
+        }
+
+        function editCardForm(id) {
+            const c = cachedCatalog.find(x => x.id === id);
+            if (!c) return;
+            document.getElementById('card-id').value = c.id;
+            document.getElementById('card-name').value = c.name;
+            document.getElementById('card-icon').value = c.icon;
+            document.getElementById('card-currency').value = c.currency;
+            document.getElementById('card-cost').value = c.baseCost;
+            document.getElementById('card-pph').value = c.basePph;
+        }
+
+        function resetCardForm() {
+            document.getElementById('card-id').value = '';
+            document.getElementById('card-name').value = '';
+            document.getElementById('card-icon').value = '🧪';
+            document.getElementById('card-currency').value = 'POINTS';
+            document.getElementById('card-cost').value = '';
+            document.getElementById('card-pph').value = '';
+        }
+
+        async function addOrSaveLabCard() {
+            const id = document.getElementById('card-id').value;
+            const name = document.getElementById('card-name').value;
+            const icon = document.getElementById('card-icon').value || '🧪';
+            const currency = document.getElementById('card-currency').value;
+            const baseCost = document.getElementById('card-cost').value;
+            const basePph = document.getElementById('card-pph').value;
+            if (!name || baseCost === "" || basePph === "") return showToast("⚠️ Lengkapi data Item Lab!", true);
+            const res = await fetch('/api/admin/add-lab-card', { method: 'POST', headers: getHeaders(), body: JSON.stringify({ id, name, icon, currency, baseCost: Number(baseCost), basePph: Number(basePph) }) });
+            const data = await res.json();
+            if (!data.error) { resetCardForm(); applyDashboardData(data); showToast(data.message); }
+        }
+
+        async function deleteLabCard(cardId) {
+            const res = await fetch('/api/admin/delete-lab-card', { method: 'POST', headers: getHeaders(), body: JSON.stringify({ cardId }) });
+            const data = await res.json();
+            if (!data.error) { applyDashboardData(data); showToast(data.message); }
+        }
+
+        async function addOrSaveMission() {
+            const id = document.getElementById('mission-id').value;
+            const title = document.getElementById('mission-title').value;
+            const reward = document.getElementById('mission-reward').value;
+            const link = document.getElementById('mission-link').value || 'https://t.me/';
+            if (!title || reward === "") return showToast("⚠️ Lengkapi Judul dan Hadiah Misi!", true);
+            const res = await fetch('/api/admin/add-mission', { method: 'POST', headers: getHeaders(), body: JSON.stringify({ id, title, reward: Number(reward), link }) });
+            const data = await res.json();
+            if (!data.error) { resetMissionForm(); applyDashboardData(data); showToast(data.message); }
+        }
+
+        async function deleteMission(missionId) {
+            const res = await fetch('/api/admin/delete-mission', { method: 'POST', headers: getHeaders(), body: JSON.stringify({ missionId }) });
+            const data = await res.json();
+            if (!data.error) { applyDashboardData(data); showToast(data.message); }
+        }
+
+        async function updateWalletOnly() {
+            const newWalletAddress = document.getElementById('cfg-wallet').value;
+            const newApiKey = document.getElementById('cfg-apikey').value;
+            const res = await fetch('/api/admin/change-wallet', { method: 'POST', headers: getHeaders(), body: JSON.stringify({ newWalletAddress, newApiKey }) });
+            const data = await res.json();
+            if (!data.error) { applyDashboardData(data); showToast(data.message); }
+        }
+
+        async function saveEverythingMaster() {
+            if (document.getElementById('vip-var-name').value.trim() && document.getElementById('vip-var-cost').value !== "") await addOrSaveVipVariant();
+            if (document.getElementById('mission-title').value.trim() && document.getElementById('mission-reward').value !== "") await addOrSaveMission();
+            if (document.getElementById('card-name').value.trim() && document.getElementById('card-cost').value !== "") await addOrSaveLabCard();
+
+            const configUpdate = {
+                adminMasterWallet: document.getElementById('cfg-wallet').value.trim(),
+                toncenterApiKey: document.getElementById('cfg-apikey').value.trim(),
+                targetSupplyPool: Number(document.getElementById('cfg-pool').value) || 10000000,
+                vipMultiplier: Number(document.getElementById('cfg-vip').value) || 3.0,
+                pphPointEquivalent: Number(document.getElementById('cfg-pph').value) || 50,
+                pphClaimIntervalHours: Number(document.getElementById('cfg-pph-hours').value) || 3,
+                conversionLocked: document.getElementById('cfg-lock-conv').value === 'true',
+                withdrawLocked: document.getElementById('cfg-lock-wd').value === 'true'
+            };
+
+            const res = await fetch('/api/admin/save-all', {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ configUpdate, vipVariantsUpdate: cachedVipVariants, catalogUpdate: cachedCatalog, missionsUpdate: cachedMissions })
+            });
+            const data = await res.json();
+            if (!data.error) { applyDashboardData(data); showToast(data.message); }
+        }
+
+        function recalcAutoFitLive() {
+            const targetPool = Math.max(1, Number(document.getElementById('cfg-pool').value) || 10000000);
+            const defaultVipMulti = Math.max(1, Number(document.getElementById('cfg-vip').value) || 3.0);
+            const pphEq = Math.max(0, Number(document.getElementById('cfg-pph').value) || 50);
+            let totalGlobalWeight = 0;
+
+            const userWeights = cachedUsers.map(u => {
+                const base = u.points + (u.pph * pphEq);
+                let userMulti = 1.0;
+                if (u.isVip) {
+                    const foundVar = cachedVipVariants.find(v => v.id === u.vipVariantId);
+                    userMulti = foundVar ? Number(foundVar.multiplier) : defaultVipMulti;
+                }
+                const weight = base * userMulti;
+                totalGlobalWeight += weight;
+                return { ...u, simWeight: weight };
+            });
+
+            const autoFitRatio = totalGlobalWeight > 0 ? (totalGlobalWeight / targetPool) : 1;
+            let totalAllocated = 0, vipSum = 0, freeSum = 0;
+            const tbody = document.getElementById('users-table');
+            tbody.innerHTML = '';
+
+            userWeights.forEach(u => {
+                const finalRobi = (u.customTokenOverride !== null && u.customTokenOverride !== undefined) ? Number(u.customTokenOverride) : Math.floor(u.simWeight / autoFitRatio);
+                totalAllocated += finalRobi;
+                if (u.isVip) vipSum += finalRobi; else freeSum += finalRobi;
+
+                const variantOptions = [
+                    `<option value="FREE" ${!u.isVip ? 'selected' : ''}>Gratis (Non-VIP 1x)</option>`,
+                    ...cachedVipVariants.map(v => {
+                        const isSelected = u.isVip && (u.vipVariantId === v.id || (!u.vipVariantId && v.id === cachedVipVariants[0]?.id));
+                        return `<option value="${v.id}" ${isSelected ? 'selected' : ''}>${v.icon} ${v.name} (${v.multiplier}x)</option>`;
+                    })
+                ].join('');
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="py-2.5 pr-2"><strong>@${u.username}</strong><span class="block text-[10px] text-slate-500">ID: ${u.id}</span></td>
+                    <td class="py-2.5 pr-2"><input type="number" id="u-pts-${u.id}" value="${Math.floor(u.points)}" class="w-24 bg-slate-950 border border-slate-700 p-1.5 rounded text-xs font-bold text-white"></td>
+                    <td class="py-2.5 pr-2"><input type="number" id="u-pph-${u.id}" value="${Math.floor(u.pph)}" class="w-20 bg-slate-950 border border-slate-700 p-1.5 rounded text-xs font-bold text-sky-400"></td>
+                    <td class="py-2.5 pr-2"><select id="u-vipvar-${u.id}" class="bg-slate-950 border border-slate-700 p-1.5 rounded text-xs font-bold text-amber-400">${variantOptions}</select></td>
+                    <td class="py-2.5 pr-2"><span class="text-sm font-extrabold text-amber-400">${finalRobi.toLocaleString('id-ID')}</span> <span class="text-[10px] text-amber-400">$ROBI</span></td>
+                    <td class="py-2.5 flex gap-1"><button onclick="saveUserRow('${u.id}')" class="bg-emerald-600 px-2.5 py-1.5 rounded text-[11px] font-bold">💾 Simpan</button><button onclick="toggleUserUnlock('${u.id}', ${!u.customUnlock})" class="px-2 py-1.5 rounded text-[10px] font-bold ${u.customUnlock ? 'bg-indigo-600' : 'bg-slate-800'}">${u.customUnlock ? '🔓' : '🔒'}</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('ui-autofit-ratio').innerText = autoFitRatio.toLocaleString('id-ID', { maximumFractionDigits: 2 });
+            document.getElementById('ui-total-allocated').innerText = totalAllocated.toLocaleString('id-ID');
+            document.getElementById('ui-target-pool').innerText = targetPool.toLocaleString('id-ID');
+            document.getElementById('ui-vip-share').innerText = vipSum.toLocaleString('id-ID');
+            document.getElementById('ui-free-share').innerText = freeSum.toLocaleString('id-ID');
+            document.getElementById('ui-total-weight').innerText = `Total Bobot Global: ${Math.floor(totalGlobalWeight).toLocaleString('id-ID')}`;
+        }
+
+        async function saveUserRow(userId) {
+            const points = Number(document.getElementById(`u-pts-${userId}`).value);
+            const pph = Number(document.getElementById(`u-pph-${userId}`).value);
+            const vipVariantId = document.getElementById(`u-vipvar-${userId}`).value;
+            const res = await fetch('/api/admin/edit-user', { method: 'POST', headers: getHeaders(), body: JSON.stringify({ userId, points, pph, vipVariantId }) });
+            const data = await res.json();
+            if (!data.error) { applyDashboardData(data); showToast(data.message); }
+        }
+
+        async function toggleUserUnlock(userId, nextState) {
+            const res = await fetch('/api/admin/edit-user', { method: 'POST', headers: getHeaders(), body: JSON.stringify({ userId, customUnlock: nextState }) });
+            const data = await res.json();
+            if (!data.error) applyDashboardData(data);
+        }
+
+        function renderClaims(claims) {
+            const box = document.getElementById('claims-list');
+            if (!claims || claims.length === 0) { box.innerHTML = 'Belum ada antrean klaim token.'; return; }
+            box.innerHTML = claims.map(c => `<div class="flex justify-between items-center bg-slate-950 p-2.5 rounded border border-slate-800"><div><strong class="text-white">@${c.username}</strong> (${c.vipVariantName || 'Non-VIP'})<span class="block text-[11px] font-mono text-sky-400">${c.walletAddress}</span></div><strong class="text-amber-400">${Number(c.finalRobiAmount).toLocaleString('id-ID')} $ROBI</strong></div>`).join('');
+        }
+
+        loadDashboard();
+    </script>
+</body>
+</html>
