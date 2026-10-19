@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Robi's Lab</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-white p-4 md:p-6 font-sans">
+    <div class="flex flex-wrap justify-between items-center border-b border-slate-800 pb-4 mb-6 gap-4">
+        <div>
+            <h1 class="text-xl md:text-2xl font-bold text-orange-400">🤖 Robi's Lab — Pusat Kendali Penuh Admin</h1>
+            <p class="text-xs text-slate-400">Pure Auto-Fit Supply | Kontrol Wallet TON, Varian VIP, Upgrade Lab & Misi Harian</p>
+        </div>
+        <div class="flex flex-wrap gap-2 items-center">
+            <input type="password" id="secret" value="Raihan3110" placeholder="Admin Secret" class="bg-slate-900 border border-slate-700 px-3 py-2 rounded-lg text-sm">
+            <button onclick="loadDashboard()" class="bg-slate-800 hover:bg-slate-700 border border-slate-600 px-4 py-2 rounded-lg text-xs font-bold cursor-pointer">🔄 Muat Data</button>
+            <button onclick="saveEverythingMaster()" class="bg-emerald-600 hover:bg-emerald-500 px-5 py-2 rounded-lg text-xs font-extrabold text-white shadow-lg cursor-pointer">💾 SIMPAN SEMUA</button>
+        </div>
+    </div>
+
+    <div id="status-toast" class="hidden mb-4 p-3 rounded-xl border text-xs font-bold"></div>
+
+    <div class="bg-slate-900 border-2 border-orange-500/70 rounded-2xl p-5 mb-6">
+        <h2 class="text-base font-bold text-orange-400 mb-1">💼 Pengaturan Master Wallet TON Admin</h2>
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end mt-2">
+            <div class="md:col-span-6">
+                <label class="text-xs text-slate-300 font-semibold block mb-1">Alamat Master Wallet TON</label>
+                <input type="text" id="cfg-wallet" value="UQCul5GCA1kYB8Mvp-dLtLTp8tnxgNzuYYwhS-jFY5PNfQQE" class="w-full bg-slate-950 border border-orange-500/60 p-2.5 rounded-lg text-xs font-mono text-amber-300 font-bold">
+            </div>
+            <div class="md:col-span-4">
+                <label class="text-xs text-slate-300 font-semibold block mb-1">Toncenter API Key</label>
+                <input type="password" id="cfg-apikey" value="c25daab1896cfdef11073094a586f7c2cafd83caf21f505e203ad6ec0e726210" class="w-full bg-slate-950 border border-slate-700 p-2.5 rounded-lg text-xs font-mono text-slate-300">
+            </div>
+            <div class="md:col-span-2">
+                <button onclick="updateWalletOnly()" class="w-full bg-orange-600 py-2.5 rounded-lg font-bold text-xs text-white cursor-pointer">Simpan Wallet</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="space-y-6">
+            <div class="bg-slate-900 p-5 rounded-xl border-2 border-amber-500/60 space-y-3">
+                <h3 class="font-bold text-amber-400 border-b border-slate-800 pb-2">👑 Manajemen Varian VIP</h3>
+                <input type="hidden" id="vip-var-id">
+                <input type="text" id="vip-var-name" placeholder="Nama Varian (Contoh: VIP Sultan)" class="w-full bg-slate-950 border border-slate-700 p-2 rounded text-xs font-bold">
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="number" step="0.1" id="vip-var-cost" placeholder="Harga TON" class="w-full bg-slate-950 border border-slate-700 p-2 rounded text-xs">
+                    <input type="number" step="0.5" id="vip-var-multi" placeholder="Multiplier (x)" class="w-full bg-slate-950 border border-slate-700 p-2 rounded text-xs">
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                    <input type="number" id="vip-var-tap" placeholder="Tap +" class="w-full bg-slate-950 border border-slate-700 p-2 rounded text-xs">
+                    <input type="number" id="vip-var-pph" placeholder="PPH +" class="w-full bg-slate-950 border border-slate-700 p-2 rounded text-xs">
+                    <input type="number" id="vip-var-hours" value="24" placeholder="Max Jam" class="w-full bg-slate-950 border border-slate-700 p-2 rounded text-xs">
+                </div>
+                <button onclick="addOrSaveVipVariant()" id="btn-save-vip-var" class="w-full bg-amber-600 py-2 rounded-lg font-bold text-xs text-white cursor-pointer">➕ Simpan Varian VIP</button>
+                <div id="admin-vip-variants-list" class="space-y-1.5 max-h-40 overflow-y-auto"></div>
+            </div>
+
+            <div class="bg-slate-900 p-5 rounded-xl border border-slate-800 space-y-3">
+                <h3 class="font-bold text-orange-400 border-b border-slate-800 pb-2">🔬 Upgrade Plan Lab</h3>
+                <input type="hidden" id="card-id">
+                <input type="text" id="card-name" placeholder="Nama Alat Lab" class="w-full bg-slate-950 border border-slate-700 p-2 rounded text-xs">
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="text" id="card-icon" value="🧪" class="w-full bg-slate-950 border border-slate-700 p-2 rounded text-xs text-center">
+                    <select id="card-currency" class="w-full bg-slate-950 border border-slate-700 p-2 rounded text-xs font-bold">
+                        <option value="POINTS">Poin Riset</option>
+                        <option value="TON">TON (VIP)</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="number" step="any" id="card-cost" placeholder="Harga" class="w-full bg-slate-950 border border-slate-700 p-2 rounded text-xs">
+                    <input type="number" id="card-pph" placeholder="PPH / Jam" class="w-full bg-slate-950 border border-slate-700 p-2 rounded text-xs">
+                </div>
+                <button onclick="addOrSaveLabCard()" id="btn-save-card" class="w-full bg-orange-600 py-2 rounded-lg font-bold text-xs text-white cursor-pointer">➕ Simpan Item Lab</button>
+                <div id="admin-cards-list" class="space-y-1.5 max-h-40 overflow-y-auto"></div>
+            </div>
+
+            <div class="bg-slate-900 p-5 rounded-xl border border-slate-800 space-y-3">
+                <h3 class="font-bold text-emerald-400 border-b border-slate-800 pb-2">📋 Misi Harian</h3>
+                <input type="hidden" id="mission-id">
+                <input type="text" id="mission-title" placeholder="Judul Misi" class="w-full bg-slate-950 border border-slate-700 p-2 rounded text-xs">
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="number" id="mission-reward" placeholder="Hadiah Poin" class="w-full bg-slate-950 border border-slate-700 p-2 rounded text-xs">
+                    <input type="text" id="mission-link" placeholder="Link Misi" class="w-full bg-slate-950 border border-slate-700 p-2 rounded text-xs">
+                </div>
+                <button onclick="addOrSaveMission()" id="btn-save-mission" class="w-full bg-emerald-600 py-2 rounded-lg font-bold text-xs text-white cursor-pointer">➕ Simpan Misi</button>
+                <div id="admin-missions-list" class="space-y-1.5 max-h-40 overflow-y-auto"></div>
+            </div>
+        </div>
+
+        <div class="lg:col-span-2 space-y-6">
+            <div class="bg-slate-900 p-5 rounded-xl border border-slate-800">
+                <h3 class="font-bold text-white border-b border-slate-800 pb-2 mb-3">👥 Daftar Pemain & Varian VIP</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="text-slate-400 border-b border-slate-800">
+                            <tr>
+                                <th class="py-2 pr-2">Pemain</th>
+                                <th class="py-2 pr-2">Poin</th>
+                                <th class="py-2 pr-2">PPH</th>
+                                <th class="py-2 pr-2">Varian VIP</th>
+                                <th class="py-2 pr-2">Est $ROBI</th>
+                                <th class="py-2">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table" class="divide-y divide-slate-800"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let cachedUsers = [], cachedVipVariants = [], cachedMissions = [], cachedCatalog = [];
+        const getHeaders = () => ({ 'Content-Type': 'application/json', 'x-admin-secret': (document.getElementById('secret').value || 'Raihan3110').trim() });
+
+        function showToast(msg, isError = false) {
+            const el = document.getElementById('status-toast');
+            el.className = `mb-4 p-3 rounded-xl border text-xs font-bold ${isError ? 'bg-rose-950 border-rose-500 text-rose-300' : 'bg-emerald-950 border-emerald-500 text-emerald-300'}`;
+            el.innerText = msg;
+            el.classList.remove('hidden');
+            setTimeout(() => el.classList.add('hidden'), 4000);
+        }
+
+        async function loadDashboard() {
+            try {
+                const res = await fetch('/api/admin/dashboard', { headers: getHeaders() });
+                if (res.status === 403) return showToast("❌ Sandi Salah!", true);
+                const data = await res.json();
+                if (data.error) return showToast(data.error, true);
+                cachedUsers = data.users || [];
+                cachedVipVariants = data.vipVariants || [];
+                cachedMissions = data.missions || [];
+                cachedCatalog = data.catalog || [];
+                renderAdminVipVariants();
+                renderAdminMissions();
+                renderAdminCards();
+                renderUsersTable();
+                showToast("Data berhasil dimuat");
+            } catch (e) {
+                showToast("Gagal terhubung ke server", true);
+            }
+        }
+
+        function renderAdminVipVariants() {
+            const el = document.getElementById('admin-vip-variants-list');
+            el.innerHTML = cachedVipVariants.map(v => `
+                <div class="flex justify-between items-center bg-slate-950 p-2 rounded text-xs border border-amber-500/30">
+                    <div><strong>${v.icon} ${v.name}</strong> (${v.costTon} TON | ${v.multiplier}x)</div>
+                    <div class="flex gap-1"><button onclick="editVip('${v.id}')" class="bg-sky-700 px-2 py-0.5 rounded">Edit</button><button onclick="delVip('${v.id}')" class="bg-rose-600 px-2 py-0.5 rounded">Hapus</button></div>
+                </div>
+            `).join('');
+        }
+
+        function editVip(id) {
+            const v = cachedVipVariants.find(x => x.id === id);
+            if (!v) return;
+            document.getElementById('vip-var-id').value = v.id;
+            document.getElementById('vip-var-name').value = v.name;
+            document.getElementById('vip-var-icon').value = v.icon;
+            document.getElementById('vip-var-cost').value = v.costTon;
+            document.getElementById('vip-var-multi').value = v.multiplier;
+            document.getElementById('vip-var-tap').value = v.tapGain || 0;
+            document.getElementById('vip-var-pph').value = v.pphBonus || 0;
+            document.getElementById('vip-var-hours').value = v.maxOfflineHours || 24;
+        }
+
+        async function addOrSaveVipVariant() {
+            const id = document.getElementById('vip-var-id').value;
+            const name = document.getElementById('vip-var-name').value;
+            const icon = document.getElementById('vip-var-icon').value || '👑';
+            const costTon = document.getElementById('vip-var-cost').value;
+            const multiplier = document.getElementById('vip-var-multi').value;
+            if (!name || costTon === "" || multiplier === "") return showToast("Isi Nama, Harga, Multiplier!", true);
+            const res = await fetch('/api/admin/add-vip-variant', { method: 'POST', headers: getHeaders(), body: JSON.stringify({ id, name, icon, costTon: Number(costTon), multiplier: Number(multiplier), tapGain: Number(document.getElementById('vip-var-tap').value), pphBonus: Number(document.getElementById('vip-var-pph').value), maxOfflineHours: Number(document.getElementById('vip-var-hours').value) }) });
+            const data = await res.json();
+            if (!data.error) { loadDashboard(); showToast(data.message); }
+        }
+
+        async function delVip(variantId) {
+            const res = await fetch('/api/admin/delete-vip-variant', { method: 'POST', headers: getHeaders(), body: JSON.stringify({ variantId }) });
+            const data = await res.json();
+            if (!data.error) loadDashboard();
+        }
+
+        function renderAdminMissions() {
+            document.getElementById('admin-missions-list').innerHTML = cachedMissions.map(m => `
+                <div class="flex justify-between items-center bg-slate-950 p-2 rounded text-xs border border-slate-800">
+                    <div><strong>${m.title}</strong> (+${m.reward})</div>
+                    <button onclick="delMission('${m.id}')" class="bg-rose-600 px-2 py-0.5 rounded">Hapus</button>
+                </div>
+            `).join('');
+        }
+
+        async function addOrSaveMission() {
+            const id = document.getElementById('mission-id').value;
+            const title = document.getElementById('mission-title').value;
+            const reward = document.getElementById('mission-reward').value;
+            if (!title || reward === "") return showToast("Isi Judul & Hadiah!", true);
+            const res = await fetch('/api/admin/add-mission', { method: 'POST', headers: getHeaders(), body: JSON.stringify({ id, title, reward: Number(reward), link: document.getElementById('mission-link').value }) });
+            const data = await res.json();
+            if (!data.error) { loadDashboard(); showToast(data.message); }
+        }
+
+        async function delMission(missionId) {
+            const res = await fetch('/api/admin/delete-mission', { method: 'POST', headers: getHeaders(), body: JSON.stringify({ missionId }) });
+            const data = await res.json();
+            if (!data.error) loadDashboard();
+        }
+
+        function renderAdminCards() {
+            document.getElementById('admin-cards-list').innerHTML = cachedCatalog.map(c => `
+                <div class="flex justify-between items-center bg-slate-950 p-2 rounded text-xs border border-slate-800">
+                    <div><strong>${c.icon} ${c.name}</strong> (${c.baseCost} ${c.currency})</div>
+                    <button onclick="delCard('${c.id}')" class="bg-rose-600 px-2 py-0.5 rounded">Hapus</button>
+                </div>
+            `).join('');
+        }
+
+        async function addOrSaveLabCard() {
+            const id = document.getElementById('card-id').value;
+            const name = document.getElementById('card-name').value;
+            const baseCost = document.getElementById('card-cost').value;
+            const basePph = document.getElementById('card-pph').value;
+            if (!name || baseCost === "" || basePph === "") return showToast("Isi Nama, Harga, PPH!", true);
+            const res = await fetch('/api/admin/add-lab-card', { method: 'POST', headers: getHeaders(), body: JSON.stringify({ id, name, icon: document.getElementById('card-icon').value, currency: document.getElementById('card-currency').value, baseCost: Number(baseCost), basePph: Number(basePph) }) });
+            const data = await res.json();
+            if (!data.error) { loadDashboard(); showToast(data.message); }
+        }
+
+        async function delCard(cardId) {
+            const res = await fetch('/api/admin/delete-lab-card', { method: 'POST', headers: getHeaders(), body: JSON.stringify({ cardId }) });
+            const data = await res.json();
+            if (!data.error) loadDashboard();
+        }
+
+        function renderUsersTable() {
+            const tbody = document.getElementById('users-table');
+            tbody.innerHTML = cachedUsers.map(u => {
+                const variantOpts = [
+                    `<option value="FREE" ${!u.isVip ? 'selected' : ''}>Gratis</option>`,
+                    ...cachedVipVariants.map(v => `<option value="${v.id}" ${u.isVip && u.vipVariantId === v.id ? 'selected' : ''}>${v.icon} ${v.name}</option>`)
+                ].join('');
+                return `
+                    <tr>
+                        <td class="py-2">@${u.username}</td>
+                        <td class="py-2"><input type="number" id="u-pts-${u.id}" value="${Math.floor(u.points)}" class="w-20 bg-slate-950 border p-1 rounded text-xs"></td>
+                        <td class="py-2"><input type="number" id="u-pph-${u.id}" value="${Math.floor(u.pph)}" class="w-16 bg-slate-950 border p-1 rounded text-xs"></td>
+                        <td class="py-2"><select id="u-vip-${u.id}" class="bg-slate-950 border p-1 rounded text-xs">${variantOpts}</select></td>
+                        <td class="py-2">${Math.floor(u.calculatedRobi || 0)}</td>
+                        <td class="py-2"><button onclick="saveUser('${u.id}')" class="bg-emerald-600 px-2 py-1 rounded text-xs">Simpan</button></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function saveUser(userId) {
+            const points = Number(document.getElementById(`u-pts-${userId}`).value);
+            const pph = Number(document.getElementById(`u-pph-${userId}`).value);
+            const vipVariantId = document.getElementById(`u-vip-${userId}`).value;
+            const res = await fetch('/api/admin/edit-user', { method: 'POST', headers: getHeaders(), body: JSON.stringify({ userId, points, pph, vipVariantId }) });
+            const data = await res.json();
+            if (!data.error) { loadDashboard(); showToast("User disimpan"); }
+        }
+
+        async function saveEverythingMaster() {
+            await addOrSaveVipVariant();
+            await addOrSaveMission();
+            await addOrSaveLabCard();
+            loadDashboard();
+            showToast("Semua perubahan disimpan!");
+        }
+
+        loadDashboard();
+    </script>
+</body>
+</html>
